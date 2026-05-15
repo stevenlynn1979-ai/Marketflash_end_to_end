@@ -1,0 +1,93 @@
+--found the net prfoit of both campaign types, Sales and Sign Up
+SELECT 
+    ca.type_name AS Campaign_Type, 
+    SUM(c.total_sales - c.expense) AS net_profit
+FROM Campaigns c 
+JOIN Campaign_types ca ON ca.type_id = c.campaign_type_id
+GROUP BY ca.type_name
+ORDER BY net_profit DESC;
+
+--Segmented the audience, order by the net profit to see avg_cost_per_click and conversions
+SELECT 
+    a.gender || ' ' || a.age_range AS audience_segment,
+    ROUND(SUM(c.expense) / NULLIF(SUM(c.clicks), 0), 2) AS avg_cost_per_click,
+    ROUND(SUM(c.expense) / NULLIF(SUM(c.conversions), 0), 2) AS avg_cost_per_conversion,
+    SUM(c.conversions) AS total_conversions,
+    ROUND(SUM(c.total_sales - c.expense), 2) AS net_profit
+FROM Campaigns c
+JOIN Audiences a ON c.audience_id = a.audience_id
+GROUP BY a.audience_id
+ORDER BY net_profit DESC;
+
+--Seperated the campaign types and looked for avg duration days and the total campaigns altogether
+SELECT 
+    ca.type_name AS Campaign_Type,
+    
+    ROUND(AVG(julianday(c.end_date) - julianday(c.start_date)), 1) AS avg_days_duration,
+    COUNT(c.campaign_number) AS total_campaigns
+FROM Campaigns c
+JOIN Campaign_types ca ON c.campaign_type_id = ca.type_id
+GROUP BY ca.type_name
+ORDER BY avg_days_duration DESC;
+
+
+--Seperated out the various channels, looking at total campaigns and total channel sales
+SELECT 
+    ch.channel_name AS Channel,
+    ROUND(AVG(julianday(c.end_date) - julianday(c.start_date)), 1) AS avg_days_duration,
+    COUNT(c.campaign_number) AS total_campaigns,
+    round(SUM(c.total_sales),2) AS total_channel_sales 
+FROM Campaigns c
+JOIN Channels ch ON c.channel_id = ch.channel_id
+GROUP BY ch.channel_name
+ORDER BY avg_days_duration DESC;
+
+--Looked at the executive that was involved with the campaigns, the amount of sales and their avg sales per campaign
+SELECT 
+    e.executive_name, 
+    COUNT(c.campaign_number) AS campaigns_managed,
+    SUM(c.total_sales) AS total_sales_amount,
+    ROUND(AVG(c.total_sales), 2) AS avg_sales_per_campaign
+FROM Campaigns c
+JOIN Executives e ON c.executive_id = e.executive_id
+GROUP BY e.executive_name
+ORDER BY avg_sales_per_campaign  DESC;
+
+--
+SELECT 
+    a.age_range,
+    SUM(c.clicks) AS total_clicks,
+    SUM(c.conversions) AS total_conversions,
+    ROUND((CAST(SUM(c.conversions) AS REAL) / NULLIF(SUM(c.clicks), 0)) * 100, 2) AS conversion_rate_percentage
+FROM Campaigns c
+JOIN Audiences a ON c.audience_id = a.audience_id
+GROUP BY a.age_range
+ORDER BY conversion_rate_percentage DESC;
+
+--drilled down into the age ranges, looking at total spend, conversions, conversion rate and the cost per conversion
+SELECT 
+    a.age_range,
+    SUM(c.expense) AS total_spend,
+    SUM(c.conversions) AS total_conversions,
+    ROUND((CAST(SUM(c.conversions) AS REAL) / NULLIF(SUM(c.clicks), 0)) * 100, 2) AS conversion_rate_percent,
+    ROUND(SUM(c.expense) / NULLIF(SUM(c.conversions), 0), 2) AS cost_per_conversion
+FROM Campaigns c
+JOIN Audiences a ON c.audience_id = a.audience_id
+GROUP BY a.age_range
+ORDER BY cost_per_conversion; 
+
+
+--Pulled the channel with the 18-40 age range looking at the total conversions, total spend and return on investment
+SELECT 
+    ch.channel_name AS Channel,
+    a.age_range,
+    SUM(c.conversions) AS total_conversions,
+    round(SUM(c.expense), 2) AS total_spend,
+    ROUND(SUM(c.expense) / NULLIF(SUM(c.conversions), 0), 2) AS cost_per_conversion,
+    ROUND(SUM(c.total_sales) / NULLIF(SUM(c.expense), 0), 2) AS return_on_investment
+FROM Campaigns c
+JOIN Audiences a ON c.audience_id = a.audience_id
+JOIN Channels ch ON c.channel_id = ch.channel_id
+WHERE a.age_range = '18-40'  
+GROUP BY ch.channel_name
+ORDER BY cost_per_conversion ASC;
