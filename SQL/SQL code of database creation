@@ -1,0 +1,34 @@
+SQL Code for Setup
+
+CREATE TABLE IF NOT EXISTS Clients (client_id varchar(10) PRIMARY KEY, client_name varchar(20));
+CREATE TABLE IF NOT EXISTS Executives (executive_id varchar(10) PRIMARY KEY, executive_name varchar(20));
+CREATE TABLE IF NOT EXISTS Channels (channel_id varchar(10) PRIMARY KEY, channel_name varchar(15));
+CREATE TABLE IF NOT EXISTS Campaign_types (type_id varchar(10) PRIMARY KEY, type_name varchar(20));
+CREATE TABLE IF NOT EXISTS Audiences (audience_id varchar(10) PRIMARY KEY, gender TEXT, age_range varchar(20));
+CREATE TABLE IF NOT EXISTS Locations (location_id varchar(10) PRIMARY KEY, location_name varchar(20));
+
+
+CREATE TABLE IF NOT EXISTS Campaigns (
+    campaign_number varchar(10) PRIMARY KEY not null,
+    campaign_name varchar(20) not null,
+    start_date DATE,
+    end_date DATE,
+    views INTEGER,
+    likes INTEGER,
+    clicks INTEGER,
+    conversions INTEGER,
+    expense decimal (15,2),
+    total_sales decimal (15,2),
+    client_id varchar (10),
+    executive_id varchar(10),
+    channel_id varchar(10),
+    campaign_type_id varchar(10),
+    audience_id varchar(10),
+    location_id varchar(10),
+    FOREIGN KEY (client_id) REFERENCES Clients(client_id),
+    FOREIGN KEY (executive_id) REFERENCES Executives(executive_id),
+    FOREIGN KEY (channel_id) REFERENCES Channels(channel_id),
+    FOREIGN KEY (campaign_type_id) REFERENCES Campaign_types(type_id),
+    FOREIGN KEY (audience_id) REFERENCES Audiences(audience_id),
+    FOREIGN KEY (location_id) REFERENCES Locations(location_id)
+);
